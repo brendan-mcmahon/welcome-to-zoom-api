@@ -19,14 +19,14 @@ function getNewNeighbor(name) {
 }
 
 function getNeighbor(gameCode, name) {
-    let room = getRoom(gameCode);
+    let room = getRoom(gameCode.toUpperCase());
     if (room.neighbors) {
         return room.neighbors.filter(n => n.name === name)[0];
     }
 }
 
 function getRoom(gameCode) {
-    return rooms.filter(r => r.name === gameCode)[0];
+    return rooms.filter(r => r.name === gameCode.toUpperCase())[0];
 }
 
 io.on('connection', (socket) => {
@@ -51,6 +51,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('join', (gameCode, neighborhoodName) => {
+        gameCode = gameCode.toUpperCase();
         socket.join(gameCode);
         var  room = getRoom(gameCode);
 
@@ -61,10 +62,10 @@ io.on('connection', (socket) => {
 
         room.neighbors.push(getNewNeighbor(neighborhoodName));
 
-        io.in(gameCode).emit('user-update', room.neighbors);
-        io.in(gameCode).emit('game-state', gameService.table  );
+        io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
+        io.in(gameCode.toUpperCase()).emit('game-state', gameService.table  );
         
-        console.log(`${neighborhoodName} is joining ${gameCode}`);
+        console.log(`${neighborhoodName} is joining ${gameCode.toUpperCase()}`);
     });
 
     socket.on('ready', (gameCode, neighborhoodName) => {
@@ -76,14 +77,14 @@ io.on('connection', (socket) => {
         if (room.neighbors.every(n => n.ready))
         {
             gameService.deal();
-            io.in(gameCode).emit('game-state', gameService.table );
+            io.in(gameCode.toUpperCase()).emit('game-state', gameService.table );
             // set all neighbors ready to false;
             room.neighbors.forEach(n => n.ready = false);
         }
 
         let neighbor = getNeighbor(gameCode, neighborhoodName);
         
-        io.in(gameCode).emit('user-update', room.neighbors);
+        io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
     });
 
     socket.on('strike', (gameCode, neighborhoodName) => {
@@ -100,7 +101,7 @@ io.on('connection', (socket) => {
         let neighbor = getNeighbor(gameCode, neighborhoodName);
         console.log(`${neighbor.name} got a strike ${neighbor.strikeCount}`);
         
-        io.in(gameCode).emit('user-update', room.neighbors);
+        io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
     });
 
     socket.on('goal-accomplished', (index) => {
