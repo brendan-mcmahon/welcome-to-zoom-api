@@ -61,27 +61,29 @@ io.on('connection', (socket) => {
 
         io.in(gameCode).emit('user-update', getRoom(gameCode).neighbors);
         io.in(gameCode).emit('game-state', gameService.table );
+        io.to(socket.id).emit('game-confirmation', { neighborhoodName, gameCode });
 
         console.log(`${socket.username} created ${socket.gameCode}`);
     });
 
     socket.on('join', (gameCode, neighborhoodName) => {
-        gameCode = gameCode.toUpperCase();
-        socket.join(gameCode);
-        socket.username = neighborhoodName;
-        socket.gameCode = gameCode;
-
         var  room = getRoom(gameCode);
 
         if (!room || !room.neighbors) {
             io.emit('error', `Game not found with code ${gameCode}`)
             return;
         }
+        
+        gameCode = gameCode.toUpperCase();
+        socket.join(gameCode);
+        socket.username = neighborhoodName;
+        socket.gameCode = gameCode;
 
         room.neighbors.push(getNewNeighbor(neighborhoodName, socket.id));
 
         io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
         io.in(gameCode.toUpperCase()).emit('game-state', gameService.table  );
+        io.to(socket.id).emit('game-confirmation', { neighborhoodName, gameCode });
         
         console.log(`${neighborhoodName} is joining ${gameCode.toUpperCase()}`);
     });
