@@ -10,11 +10,12 @@ app.get('/', function (req, res){
 var rooms = [];
 var gameService = null;
 
-function getNewNeighbor(name) {
+function getNewNeighbor(name, socketId) {
     return {
         name: name,
         ready: false,
-        strikeCount: 0
+        strikeCount: 0,
+        socketId: socketId
     };
 }
 
@@ -30,15 +31,29 @@ function getRoom(gameCode) {
 }
 
 io.on('connection', (socket) => {
-    console.log('a user connected');
+    console.log(`a user connected: ${socket.id}`);
+    console.log(`open rooms: ${rooms.length}`);
 
     socket.on('disconnect', () => {
-        console.log('a user disconnected');
+        console.log(`${socket.id} was disconnected`);
+        console.log(`in game ${socket.gameCode}`);
+        if (socket.gameCode){
+            var room = getRoom(socket.gameCode);
+            if (room.neighbors) {
+                room.neighbors = room.neighbors.filter(n => n.name !== socket.username);
+                logList(room.neighbors);
+                io.in(socket.gameCode).emit('user-update', room.neighbors);
+
+                //check to see if everyone left and destroy the game?
+            }
+        }
     });
 
     socket.on('create', (gameCode, neighborhoodName) => {
-        rooms.push({ name: gameCode, neighbors: [getNewNeighbor(neighborhoodName)] });
+        rooms.push({ name: gameCode, neighbors: [getNewNeighbor(neighborhoodName, socket.id)] });
         socket.join(gameCode);
+        socket.username = neighborhoodName;
+        socket.gameCode = gameCode;
         
         gameService = new GameService();
 
@@ -47,12 +62,15 @@ io.on('connection', (socket) => {
         io.in(gameCode).emit('user-update', getRoom(gameCode).neighbors);
         io.in(gameCode).emit('game-state', gameService.table );
 
-        console.log(`${neighborhoodName} created ${gameCode}`);
+        console.log(`${socket.username} created ${socket.gameCode}`);
     });
 
     socket.on('join', (gameCode, neighborhoodName) => {
         gameCode = gameCode.toUpperCase();
         socket.join(gameCode);
+        socket.username = neighborhoodName;
+        socket.gameCode = gameCode;
+
         var  room = getRoom(gameCode);
 
         if (!room || !room.neighbors) {
@@ -60,7 +78,7 @@ io.on('connection', (socket) => {
             return;
         }
 
-        room.neighbors.push(getNewNeighbor(neighborhoodName));
+        room.neighbors.push(getNewNeighbor(neighborhoodName, socket.id));
 
         io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
         io.in(gameCode.toUpperCase()).emit('game-state', gameService.table  );
@@ -109,5 +127,9 @@ io.on('connection', (socket) => {
     });
 
 });
+
+function logList(array) {
+    array.forEach(item => console.log(item));
+}
 
 http.listen(process.env.PORT || 5000);
