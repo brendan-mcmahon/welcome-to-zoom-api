@@ -88,6 +88,22 @@ io.on('connection', (socket) => {
         console.log(`${neighborhoodName} is joining ${gameCode.toUpperCase()}`);
     });
 
+    socket.on('leave', (gameCode, neighborhoodName) => {
+        var room = getRoom(gameCode);
+        if (room) {
+            console.log(`a user is leaving ${gameCode}`);
+            
+            gameCode = gameCode.toUpperCase();
+            socket.leave(gameCode);
+            room.neighbors = room.neighbors.filter(n => n.name !== neighborhoodName);
+            console.log(`${socket.id} must equal ${room.neighbors.filter(n => n.socketId == socket.id).socketId}`);
+
+            io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
+        } else {
+            console.log(`Room ${gameCode} not found`);
+        }
+    });
+
     socket.on('ready', (gameCode, neighborhoodName) => {
 
         getNeighbor(gameCode, neighborhoodName).ready = true;
