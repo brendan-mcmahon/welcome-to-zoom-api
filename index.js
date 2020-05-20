@@ -9,6 +9,8 @@ app.get('/', function (req, res){
 
 var rooms = [];
 var gameService = null;
+var username = ''
+var roomCode = '';
 
 function getNewNeighbor(name, socketId) {
     return {
@@ -31,39 +33,22 @@ function getRoom(gameCode) {
 }
 
 io.on('connection', (socket) => {
-    console.log(`a user connected: ${socket.id}`);
-    console.log(`open rooms: ${rooms.length}`);
+    io.emit('admin-update', { rooms });
 
     socket.on('disconnect', () => {
-        console.log(`${socket.id} was disconnected`);
-        console.log(`in game ${socket.gameCode}`);
-        if (socket.gameCode){
-            var room = getRoom(socket.gameCode);
-            if (room.neighbors) {
-                room.neighbors = room.neighbors.filter(n => n.name !== socket.username);
-                logList(room.neighbors);
-                io.in(socket.gameCode).emit('user-update', room.neighbors);
-
-                //check to see if everyone left and destroy the game?
-            }
-        }
+        leaveGame();
     });
 
     socket.on('create', (gameCode, neighborhoodName) => {
-        rooms.push({ name: gameCode, neighbors: [getNewNeighbor(neighborhoodName, socket.id)] });
-        socket.join(gameCode);
-        socket.username = neighborhoodName;
-        socket.gameCode = gameCode;
         
-        gameService = new GameService();
+        var newRoom = { name: gameCode, neighbors: [] };
+        rooms.push(newRoom);
 
+        gameService = new GameService();
         gameService.start();
 
-        io.in(gameCode).emit('user-update', getRoom(gameCode).neighbors);
-        io.in(gameCode).emit('game-state', gameService.table );
-        io.to(socket.id).emit('game-confirmation', { neighborhoodName, gameCode });
+        joinGame(gameCode, neighborhoodName, newRoom)
 
-        console.log(`${socket.username} created ${socket.gameCode}`);
     });
 
     socket.on('join', (gameCode, neighborhoodName) => {
@@ -74,34 +59,11 @@ io.on('connection', (socket) => {
             return;
         }
         
-        gameCode = gameCode.toUpperCase();
-        socket.join(gameCode);
-        socket.username = neighborhoodName;
-        socket.gameCode = gameCode;
-
-        room.neighbors.push(getNewNeighbor(neighborhoodName, socket.id));
-
-        io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
-        io.in(gameCode.toUpperCase()).emit('game-state', gameService.table  );
-        io.to(socket.id).emit('game-confirmation', { neighborhoodName, gameCode });
-        
-        console.log(`${neighborhoodName} is joining ${gameCode.toUpperCase()}`);
+        joinGame(gameCode, neighborhoodName, room);
     });
 
-    socket.on('leave', (gameCode, neighborhoodName) => {
-        var room = getRoom(gameCode);
-        if (room) {
-            console.log(`a user is leaving ${gameCode}`);
-            
-            gameCode = gameCode.toUpperCase();
-            socket.leave(gameCode);
-            room.neighbors = room.neighbors.filter(n => n.name !== neighborhoodName);
-            console.log(`${socket.id} must equal ${room.neighbors.filter(n => n.socketId == socket.id).socketId}`);
-
-            io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
-        } else {
-            console.log(`Room ${gameCode} not found`);
-        }
+    socket.on('leave', () => {
+        leaveGame();
     });
 
     socket.on('ready', (gameCode, neighborhoodName) => {
@@ -114,11 +76,8 @@ io.on('connection', (socket) => {
         {
             gameService.deal();
             io.in(gameCode.toUpperCase()).emit('game-state', gameService.table );
-            // set all neighbors ready to false;
             room.neighbors.forEach(n => n.ready = false);
         }
-
-        let neighbor = getNeighbor(gameCode, neighborhoodName);
         
         io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
     });
@@ -131,11 +90,8 @@ io.on('connection', (socket) => {
 
         if (room.neighbors.some(n => n.strikeCount === 3))
         {
-            // game over
+            io.in(gameCode.toUpperCase()).emit('game-over');
         }
-
-        let neighbor = getNeighbor(gameCode, neighborhoodName);
-        console.log(`${neighbor.name} got a strike ${neighbor.strikeCount}`);
         
         io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
     });
@@ -144,7 +100,40 @@ io.on('connection', (socket) => {
         gameService.progressGoal(index);
     });
 
+    function joinGame(gameCode, neighborhoodName, room) {
+        gameCode = gameCode.toUpperCase();
+        socket.join(gameCode);
+        username = neighborhoodName;
+        roomCode = gameCode;
+    
+        room.neighbors.push(getNewNeighbor(neighborhoodName, socket.id));
+        
+        io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
+        io.in(gameCode.toUpperCase()).emit('game-state', gameService.table);
+        io.to(socket.id).emit('game-confirmation', { neighborhoodName, gameCode });
+        io.emit('admin-update', { rooms });
+    }
+
+    function leaveGame() {
+        var room = getRoom(roomCode);
+        if (room) {
+            socket.leave(roomCode);
+            room.neighbors = room.neighbors.filter(n => n.name !== username);
+            destroyIfEmpty(room);
+            io.in(roomCode).emit('user-update', room.neighbors);
+        }
+        roomCode = null;
+        username = null;
+        io.emit('admin-update', { rooms });
+    }
+
 });
+
+function destroyIfEmpty(room) {
+    if (room.neighbors.length <= 0) {
+        rooms = rooms.filter(r => r.name !== room.name);
+    }
+}
 
 function logList(array) {
     array.forEach(item => console.log(item));

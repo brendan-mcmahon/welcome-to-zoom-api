@@ -1,24 +1,31 @@
 <!doctype html>
 <html>
 
-  <!-- <script src="/socket.io/socket.io.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script>
     $(function () {
       var socket = io();
-      $('form').submit(function(e){
-        e.preventDefault(); // prevents page reloading
-        socket.emit('chat message', $('#m').val());
-        $('#m').val('');
-        return false;
-      });
-      socket.on('chat message', function(msg){
-        $('#messages').append($('<li>').text(msg));
+        socket.on('admin-update', function(data){
+            console.log(data);
+            $("#active-games").empty();
+            if (data.rooms.length > 0) {
+                data.rooms.forEach(room => {
+                    $('#active-games').append(`<li>${room.name}<ul id="game-${room.name}"> </ul></li>`);
+                    room.neighbors.forEach(n => {
+                        $(`#game-${room.name}`).append(`<li>${n.name}</li>`);
+                    });
+        });
+    }
       });
     });
-  </script> -->
+  </script>
 
   <body>
-    <h1>API up and running!</h1>
+    <h1><span style="font-weight:bold;">Welcome to Zoom</span> Admin Panel</h1>
+    <h2>Active Games:</h2>
+    <ul id="active-games">
+
+    </ul>
   </body>
 </html>
