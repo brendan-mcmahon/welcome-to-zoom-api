@@ -9,15 +9,13 @@ app.get('/', function (req, res){
 
 var rooms = [];
 var gameService = null;
-var username = ''
-var roomCode = '';
 
 function getNewNeighbor(name, socketId) {
     return {
         name: name,
         ready: false,
         strikeCount: 0,
-        socketId: socketId
+        socketId: socketId,
     };
 }
 
@@ -34,13 +32,19 @@ function getRoom(gameCode) {
 
 io.on('connection', (socket) => {
     io.emit('admin-update', { rooms });
+    console.log(`${socket.id} has connected`);
 
     socket.on('disconnect', () => {
-        leaveGame();
+        var neighborsInRooms = rooms.map(r => r.neighbors);
+        var thisNeighbor = neighborsInRooms.filter(n => n.socketId !== socket.id);
+        if (thisNeighbor) {
+            leaveGame(thisNeighbor.name);
+        }
     });
 
     socket.on('create', (gameCode, neighborhoodName) => {
-        
+        console.log(`${socket.id} has created a game`);
+    
         var newRoom = { name: gameCode, neighbors: [] };
         rooms.push(newRoom);
 
@@ -62,8 +66,8 @@ io.on('connection', (socket) => {
         joinGame(gameCode, neighborhoodName, room);
     });
 
-    socket.on('leave', () => {
-        leaveGame();
+    socket.on('leave', (neighborhoodName) => {
+        leaveGame(neighborhoodName);
     });
 
     socket.on('ready', (gameCode, neighborhoodName) => {
@@ -103,8 +107,6 @@ io.on('connection', (socket) => {
     function joinGame(gameCode, neighborhoodName, room) {
         gameCode = gameCode.toUpperCase();
         socket.join(gameCode);
-        username = neighborhoodName;
-        roomCode = gameCode;
     
         room.neighbors.push(getNewNeighbor(neighborhoodName, socket.id));
         
@@ -113,17 +115,16 @@ io.on('connection', (socket) => {
         io.to(socket.id).emit('game-confirmation', { neighborhoodName, gameCode });
         io.emit('admin-update', { rooms });
     }
-
+        
     function leaveGame() {
-        var room = getRoom(roomCode);
+        var room = rooms.filter(r => r.neighbors.filter(n => n.socketId === socket.id).length > 0)[0];
         if (room) {
-            socket.leave(roomCode);
-            room.neighbors = room.neighbors.filter(n => n.name !== username);
+            socket.leave(room.name);
+            room.neighbors = room.neighbors.filter(n => n.socketId !== socket.id);
             destroyIfEmpty(room);
-            io.in(roomCode).emit('user-update', room.neighbors);
+            io.in(room.name).emit('user-update', room.neighbors);
         }
-        roomCode = null;
-        username = null;
+
         io.emit('admin-update', { rooms });
     }
 
