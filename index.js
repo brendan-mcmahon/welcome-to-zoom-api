@@ -30,7 +30,7 @@ function getRoom(gameCode) {
     return rooms.filter(r => r.name === gameCode.toUpperCase())[0];
 }
 
-io.on('connection', (socket) => {
+io.on('connection', socket => {
     io.emit('admin-update', { rooms });
     console.log(`${socket.id} has connected`);
 
@@ -67,6 +67,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('leave', (neighborhoodName) => {
+        console.log(`${neighborhoodName} leaving.`);
         leaveGame(neighborhoodName);
     });
 
@@ -86,6 +87,14 @@ io.on('connection', (socket) => {
         io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
     });
 
+    socket.on('undo-ready', (gameCode, neighborhoodName) => {
+        getNeighbor(gameCode, neighborhoodName).ready = false;
+
+        let room = getRoom(gameCode);
+
+        io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
+    });
+
     socket.on('strike', (gameCode, neighborhoodName) => {
 
         getNeighbor(gameCode, neighborhoodName).strikeCount ++;
@@ -96,6 +105,14 @@ io.on('connection', (socket) => {
         {
             io.in(gameCode.toUpperCase()).emit('game-over');
         }
+        
+        io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
+    });
+    
+    socket.on('undo-strike', (gameCode, neighborhoodName) => {
+        getNeighbor(gameCode, neighborhoodName).strikeCount --;
+
+        let room = getRoom(gameCode);
         
         io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
     });
