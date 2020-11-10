@@ -105,7 +105,7 @@ io.on('connection', socket => {
         {
             io.in(gameCode.toUpperCase()).emit('game-over');
         }
-        
+        io.in(gameCode.toUpperCase()).emit('strike-update', room.neighbors);
         io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
     });
     
@@ -117,8 +117,10 @@ io.on('connection', socket => {
         io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
     });
 
-    socket.on('goal-accomplished', (index) => {
+    socket.on('goal-accomplished', (gameCode, index) => {
+        console.log(`${gameCode}.${index} accomplished goal`);
         gameService.progressGoal(index);
+        io.in(gameCode.toUpperCase()).emit('goal-update');
     });
 
     function joinGame(gameCode, neighborhoodName, room) {
