@@ -1,0 +1,217 @@
+{
+    "groups": [
+      [
+        {
+          "first": 10,
+          "second": 6,
+          "sets": [
+            {
+              "houseCount": 6,
+              "setCount": 2
+            }
+          ]
+        },
+        {
+          "first": 8,
+          "second": 4,
+          "sets": [
+            {
+              "houseCount": 1,
+              "setCount": 6
+            }
+          ]
+        },
+        {
+          "first": 6,
+          "second": 3,
+          "sets": [
+            {
+              "houseCount": 4,
+              "setCount": 2
+            }
+          ]
+        },
+        {
+          "first": 8,
+          "second": 4,
+          "sets": [
+            {
+              "houseCount": 2,
+              "setCount": 4
+            }
+          ]
+        },
+        {
+          "first": 8,
+          "second": 4,
+          "sets": [
+            {
+              "houseCount": 3,
+              "setCount": 3
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "first": 10,
+          "second": 6,
+          "sets": [
+            {
+              "houseCount": 5,
+              "setCount": 1
+            },
+            {
+              "houseCount": 2,
+              "setCount": 2
+            }
+          ]
+        },
+        {
+          "first": 12,
+          "second": 7,
+          "sets": [
+            {
+              "houseCount": 3,
+              "setCount": 2
+            },
+            {
+              "houseCount": 4,
+              "setCount": 1
+            }
+          ]
+        },
+        {
+          "first": 9,
+          "second": 5,
+          "sets": [
+            {
+              "houseCount": 4,
+              "setCount": 1
+            },
+            {
+              "houseCount": 5,
+              "setCount": 1
+            }
+          ]
+        },
+        {
+          "first": 8,
+          "second": 4,
+          "sets": [
+            {
+              "houseCount": 3,
+              "setCount": 1
+            },
+            {
+              "houseCount": 6,
+              "setCount": 1
+            }
+          ]
+        },
+        {
+          "first": 9,
+          "second": 5,
+          "sets": [
+            {
+              "houseCount": 4,
+              "setCount": 1
+            },
+            {
+              "houseCount": 1,
+              "setCount": 3
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "first": 12,
+          "second": 7,
+          "sets": [
+            {
+              "houseCount": 1,
+              "setCount": 1
+            },
+            {
+              "houseCount": 2,
+              "setCount": 1
+            },
+            {
+              "houseCount": 6,
+              "setCount": 1
+            }
+          ]
+        },
+        {
+          "first": 11,
+          "second": 6,
+          "sets": [
+            {
+              "houseCount": 1,
+              "setCount": 1
+            },
+            {
+              "houseCount": 2,
+              "setCount": 2
+            },
+            {
+              "houseCount": 3,
+              "setCount": 1
+            }
+          ]
+        },
+        {
+          "first": 7,
+          "second": 3,
+          "sets": [
+            {
+              "houseCount": 2,
+              "setCount": 1
+            },
+            {
+              "houseCount": 5,
+              "setCount": 1
+            }
+          ]
+        },
+        {
+          "first": 13,
+          "second": 7,
+          "sets": [
+            {
+              "houseCount": 2,
+              "setCount": 1
+            },
+            {
+              "houseCount": 3,
+              "setCount": 1
+            },
+            {
+              "houseCount": 5,
+              "setCount": 1
+            }
+          ]
+        },
+        {
+          "first": 13,
+          "second": 7,
+          "sets": [
+            {
+              "houseCount": 1,
+              "setCount": 1
+            },
+            {
+              "houseCount": 4,
+              "setCount": 1
+            },
+            {
+              "houseCount": 5,
+              "setCount": 1
+            }
+          ]
+        }
+      ]
+    ]
+  }
+  

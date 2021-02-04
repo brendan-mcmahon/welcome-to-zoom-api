@@ -16,12 +16,13 @@ function getNewNeighbor(name, socketId) {
         ready: false,
         strikeCount: 0,
         socketId: socketId,
+        goalPoints: [0, 0, 0]
     };
 }
 
 function getNeighbor(gameCode, name) {
     let room = getRoom(gameCode.toUpperCase());
-    if (room.neighbors) {
+    if (room && room.neighbors) {
         return room.neighbors.filter(n => n.name === name)[0];
     }
 }
@@ -117,10 +118,21 @@ io.on('connection', socket => {
         io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
     });
 
-    socket.on('goal-accomplished', (gameCode, index) => {
+    socket.on('goal-accomplished', (neighborhoodName, gameCode, index, pointValue) => {
         console.log(`${gameCode}.${index} accomplished goal`);
         gameService.progressGoal(index);
+        var room = getRoom(gameCode);
+
+        let placement = 0;
+        switch(gameService.table.goals[index].progress) {
+            case 'f': placement = 2; break;
+            case 'b': placement = 1; break;
+        }
+
+        getNeighbor(gameCode, neighborhoodName).goalPoints[index] = pointValue;
+        
         io.in(gameCode.toUpperCase()).emit('goal-update');
+        io.in(gameCode.toUpperCase()).emit('user-update', room.neighbors);
     });
 
     function joinGame(gameCode, neighborhoodName, room) {

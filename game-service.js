@@ -1,4 +1,5 @@
 const fs = require('fs');
+const goalDeck = require('./goal-deck.json');
 
 class GameService {
     deck = [];
@@ -29,7 +30,15 @@ class GameService {
     }
 
     dealGoals() {
-        this.table.goals =  [this.drawGoalCard(), this.drawGoalCard(), this.drawGoalCard()]
+        this.table.goals =  [this.drawGoalCard(0), this.drawGoalCard(1), this.drawGoalCard(2)]
+    }
+
+    drawGoalCard(i) {
+        const cardNumber = Math.floor(Math.random() * 5);
+        const g = goalDeck.groups[i][cardNumber];
+        g.index = cardNumber + 1;
+        g.progress = 'f';
+        return g;
     }
 
     deal() {
@@ -48,12 +57,6 @@ class GameService {
         this.table.left = [this.drawCard(), this.drawCard(), this.drawCard()];
     }
 
-    drawGoalCard() {
-        return {
-            progress: 'f',
-            index: Math.floor(Math.random() * 5 + 1)
-        }
-    }
 
     drawCard() {
         const randIndex = Math.floor(Math.random() * this.deck.length);
